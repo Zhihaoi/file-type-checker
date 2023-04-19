@@ -3,14 +3,25 @@ import shutil
 import sys
 
 def classify():
-    if len(sys.argv) != 4:
-        print('Usage: python file_cly.py SOURCE_DIR DEST_DIR')
+    if len(sys.argv) < 4:
+        print('Usage: python file_cly.py SOURCE_DIR DEST_DIR PACKAGE_NAME [-d]')
         sys.exit(1)
 
     source_dir = sys.argv[1]
     dest_dir = sys.argv[2]
     # Deb, Apk, Electron App, Python, Container Image, etc.
     package_name = sys.argv[3]
+    
+    global debug_mode
+    debug_mode = False
+    # Check argv[4] is debug mode or not
+    if len(sys.argv) == 5:
+        if sys.argv[4] == '-d':
+            print('Debug mode.')
+            debug_mode = True
+        else:
+            print('Unknown argument.')
+            sys.exit(1)
 
     # create a dictionary to store the number of files of each type
     file_types = {}
@@ -59,10 +70,12 @@ def do_copy(total_files, sorted_types, source_dir, dest_dir, cp_dirs):
         with open(os.path.join(dest_dir, 'file_counts.txt'), 'a') as f:
             f.write(f'{extension}: {count} files, {proportion:.2%}\n')
 
-        if __debug__:
+        if debug_mode:
             print("Debug mode. Not copying files.")
         else:
             print(f'Copying {extension} files...')
+            same_file_count = 0
+            
             if extension in cp_dirs:
                 cp_dir = cp_dirs[extension]
                 dirname = os.path.join(dest_dir, cp_dir)
@@ -75,10 +88,15 @@ def do_copy(total_files, sorted_types, source_dir, dest_dir, cp_dirs):
                     if filename.endswith(extension):
                         src_path = filepath
                         dst_path = os.path.join(dirname, filename)
+                        # check if the file already exists in the destination directory
+                        if os.path.exists(dst_path):
+                            # if so, append a number to the filename
+                            same_file_count += 1
+                            dst_path = os.path.join(dirname, f'{filename}_{same_file_count}')
                         shutil.copy(src_path, dst_path)
 
 def do_mkdir(cp_dirs, dest_dir):
-    if __debug__:
+    if debug_mode:
         print('Debug mode. Not creating directories.')
     else:
         print('Creating directories...')
@@ -120,6 +138,15 @@ def copy_files_electron(total_files, sorted_types, source_dir, dest_dir):
         '.js': 'src_code','.h': 'src_code', '.c': 'src_code',
         '.m': 'src_code', '.kt': 'src_code', '.py': 'src_code', '.sh': 'src_code',
 
+        '.dll': 'exec', '.so': 'exec', '.deb': 'exec',
+
+        '.pak': 'res', '.json': 'res', '.tid': 'res', '.map': 'res',
+        '.md': 'res', '.flow': 'res', '.html': 'res', '.css': 'res',
+        '.multids': 'res', '.yml': 'res', '.txt': 'res', '.jst': 'res',
+        '.proto': 'res', '.dat': 'res', '.xml': 'res',
+
+        '.svg': 'media', '.jpg': 'media', '.gif': 'media',
+        '.ts': 'media',
     }
 
     # mkdir src_code, exec, res, media, others directories in dest_dir
