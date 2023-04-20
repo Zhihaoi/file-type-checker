@@ -2,9 +2,38 @@ import os
 import shutil
 import sys
 
+cp_dirs = {
+        '.js': 'src_code','.h': 'src_code', '.c': 'src_code', '.php': 'src_code',
+        '.phpt': 'src_code', '.kt': 'src_code', '.py': 'src_code', '.sh': 'src_code',
+        '.pl': 'src_code', '.rb': 'src_code', '.go': 'src_code', '.java': 'src_code',
+        '.hpp': 'src_code', '.rst': 'src_code', '.ads': 'src_code', '.adb': 'src_code',
+        '.rs': 'src_code', '.cpp': 'src_code', '.cc': 'src_code', '.cxx': 'src_code',
+        '.hxx': 'src_code', 
+
+        '.dll': 'exec', '.so': 'exec', '.deb': 'exec', '.ko': 'exec',
+        '.pyc': 'exec', '.pm': 'exec', '.opq': 'exec', '.beam': 'exec',
+        '.0': 'exec', '.1': 'exec', '.3': 'exec', '.jar': 'exec',
+        '.exe': 'exec', '.bin': 'exec', '.o': 'exec', '.a': 'exec',
+        '.cmd': 'exec', '.bat': 'exec', 
+
+        '.pak': 'res', '.json': 'res', '.tid': 'res', '.map': 'res',
+        '.md': 'res', '.flow': 'res', '.html': 'res', '.css': 'res',
+        '.multids': 'res', '.yml': 'res', '.txt': 'res', '.jst': 'res',
+        '.proto': 'res', '.dat': 'res', '.xml': 'res', '.conf': 'res',
+        '.mo': 'res', '.properties': 'res', '.po': 'res', '.lock': 'res',
+        '.list': 'res', '.shlibs': 'res', '.spec': 'res', '.tfm': 'res',
+        '.ali': 'res', '.page': 'res', '.info': 'res', '.desktop': 'res',
+        '.d': 'res', '.xpm': 'res', '.vf': 'res', '.htm': 'res',
+        '.cfg': 'res', 'xhtml': 'res', '.tmpl': 'res', '.tmpl.in': 'res',
+
+        '.svg': 'media', '.jpg': 'media', '.gif': 'media',
+        '.ts': 'media', '.png': 'media', '.ico': 'media', '.bmp': 'media',
+        '.ogg': 'media', '.mp3': 'media', '.wav': 'media', '.mp4': 'media',
+    }
+
 def classify():
     if len(sys.argv) < 4:
-        print('Usage: python file_cly.py SOURCE_DIR DEST_DIR PACKAGE_NAME [-d]')
+        print('Usage: python file_cly.py SOURCE_DIR DEST_DIR PACKAGE_NAME(deb, apk, electron, python, container) [-d]')
         sys.exit(1)
 
     source_dir = sys.argv[1]
@@ -23,6 +52,10 @@ def classify():
             print('Unknown argument.')
             sys.exit(1)
 
+    # check if the dest directory exists
+    if not os.path.exists(dest_dir):
+        os.mkdir(dest_dir)
+    
     # create a dictionary to store the number of files of each type
     file_types = {}
 
@@ -30,6 +63,9 @@ def classify():
     for dirpath, dirnames, filenames in os.walk(source_dir):
         for filename in filenames:
             filepath = os.path.join(dirpath, filename)
+            # check if file is symbolic link
+            if os.path.islink(filepath):
+                continue
             extension = os.path.splitext(filename)[1]
             if extension == '':
                 extension = 'no_extension'
@@ -62,6 +98,17 @@ def classify():
         print('Unknown package type')
         sys.exit(1)
 
+def do_mkdir(cp_dirs, dest_dir):
+    if debug_mode:
+        print('Debug mode. Not creating directories.')
+    else:
+        print('Creating directories...')
+        for cp_dir in cp_dirs.values():
+            if not os.path.exists(os.path.join(dest_dir, cp_dir)):
+                os.mkdir(os.path.join(dest_dir, cp_dir))
+        if not os.path.exists(os.path.join(dest_dir, 'others')):
+            os.mkdir(os.path.join(dest_dir, 'others'))
+
 def do_copy(total_files, sorted_types, source_dir, dest_dir, cp_dirs):
     # loop through all file types and calculate their proportions
     for extension, count in sorted_types:
@@ -85,6 +132,8 @@ def do_copy(total_files, sorted_types, source_dir, dest_dir, cp_dirs):
             for dirpath, dirnames, filenames in os.walk(source_dir):
                 for filename in filenames:
                     filepath = os.path.join(dirpath, filename)
+                    if os.path.islink(filepath):
+                        continue
                     if filename.endswith(extension):
                         src_path = filepath
                         dst_path = os.path.join(dirname, filename)
@@ -92,44 +141,21 @@ def do_copy(total_files, sorted_types, source_dir, dest_dir, cp_dirs):
                         if os.path.exists(dst_path):
                             # if so, append a number to the filename
                             same_file_count += 1
-                            dst_path = os.path.join(dirname, f'{filename}_{same_file_count}')
+                            dst_path = os.path.join(dirname, f'{same_file_count}_{filename}')
+                        assert not os.path.exists(dst_path)
                         shutil.copy(src_path, dst_path)
-
-def do_mkdir(cp_dirs, dest_dir):
-    if debug_mode:
-        print('Debug mode. Not creating directories.')
-    else:
-        print('Creating directories...')
-        for cp_dir in cp_dirs.values():
-            if not os.path.exists(os.path.join(dest_dir, cp_dir)):
-                os.mkdir(os.path.join(dest_dir, cp_dir))
-        if not os.path.exists(os.path.join(dest_dir, 'others')):
-            os.mkdir(os.path.join(dest_dir, 'others'))
 
 def copy_files_deb(total_files, sorted_types, source_dir, dest_dir):
     
     # create source directories for different file types
-    cp_dirs = {
-        '.js': 'src_code','.h': 'src_code', '.c': 'src_code',
-        '.m': 'src_code', '.kt': 'src_code', '.py': 'src_code', '.sh': 'src_code',
-
-        '.dll': 'exec', '.so': 'exec', '.deb': 'exec',
-
-        '.pak': 'res', '.json': 'res', '.tid': 'res', '.map': 'res',
-        '.md': 'res', '.flow': 'res', '.html': 'res', '.css': 'res',
-        '.multids': 'res', '.yml': 'res', '.txt': 'res', '.jst': 'res',
-        '.proto': 'res', '.dat': 'res', '.xml': 'res',
-
-        '.svg': 'media', '.jpg': 'media', '.gif': 'media',
-        '.ts': 'media',
-    }
+    cp_dirs_deb = cp_dirs
 
     # mkdir src_code, exec, res, media, others directories in dest_dir
-    do_mkdir(cp_dirs=cp_dirs, dest_dir=dest_dir)
+    do_mkdir(cp_dirs=cp_dirs_deb, dest_dir=dest_dir)
     
     # copy files to dest_dir
     do_copy(total_files=total_files, sorted_types=sorted_types, 
-            source_dir=source_dir, dest_dir=dest_dir, cp_dirs=cp_dirs)
+            source_dir=source_dir, dest_dir=dest_dir, cp_dirs=cp_dirs_deb)
 
 def copy_files_electron(total_files, sorted_types, source_dir, dest_dir):
 
@@ -159,67 +185,37 @@ def copy_files_electron(total_files, sorted_types, source_dir, dest_dir):
 def copy_files_apk(total_files, sorted_types, source_dir, dest_dir):
     
     # create source directories for different file types
-    cp_dirs = {
-        '.js': 'src_code','.h': 'src_code', '.c': 'src_code',
-        '.m': 'src_code', '.kt': 'src_code', '.py': 'src_code', '.sh': 'src_code',
-
-        '.dex': 'exec', '.apk': 'exec',
-
-        '.pak': 'res', '.json': 'res', '.tid': 'res', '.map': 'res',
-        '.md': 'res', '.flow': 'res', '.html': 'res', '.css': 'res',
-        '.multids': 'res', '.yml': 'res', '.txt': 'res', '.jst': 'res',
-        '.proto': 'res', '.dat': 'res', '.xml': 'res',
-
-        '.svg': 'media', '.jpg': 'media', '.gif': 'media',
-        '.ts': 'media',
-    }
+    cp_dirs_apk = cp_dirs
 
     # mkdir src_code, exec, res, media, others directories in dest_dir
-    do_mkdir(cp_dirs=cp_dirs, dest_dir=dest_dir)
+    do_mkdir(cp_dirs=cp_dirs_apk, dest_dir=dest_dir)
 
     # copy files to dest_dir
     do_copy(total_files=total_files, sorted_types=sorted_types,
-            source_dir=source_dir, dest_dir=dest_dir, cp_dirs=cp_dirs)
+            source_dir=source_dir, dest_dir=dest_dir, cp_dirs=cp_dirs_apk)
 
 def copy_files_python(total_files, sorted_types, source_dir, dest_dir):
     
     # create source directories for different file types
-    cp_dirs = {
-        '.js': 'src_code','.h': 'src_code', '.c': 'src_code',
-        '.m': 'src_code', '.kt': 'src_code', '.py': 'src_code', '.sh': 'src_code',
-
-        '.dex': 'exec', '.apk': 'exec',
-
-        '.pak': 'res', '.json': 'res', '.tid': 'res', '.map': 'res',
-        '.md': 'res', '.flow': 'res', '.html': 'res', '.css': 'res',
-        '.multids': 'res', '.yml': 'res', '.txt': 'res', '.jst': 'res',
-        '.proto': 'res', '.dat': 'res', '.xml': 'res',
-
-        '.svg': 'media', '.jpg': 'media', '.gif': 'media',
-        '.ts': 'media',
-    }
+    cp_dirs_python = cp_dirs
 
     # mkdir src_code, exec, res, media, others directories in dest_dir
-    do_mkdir(cp_dirs=cp_dirs, dest_dir=dest_dir)
+    do_mkdir(cp_dirs=cp_dirs_python, dest_dir=dest_dir)
 
     # copy files to dest_dir
     do_copy(total_files=total_files, sorted_types=sorted_types,
-            source_dir=source_dir, dest_dir=dest_dir, cp_dirs=cp_dirs)
+            source_dir=source_dir, dest_dir=dest_dir, cp_dirs=cp_dirs_python)
 
 def copy_files_container(total_files, sorted_types, source_dir, dest_dir):
     
     # create source directories for different file types
-    cp_dirs = {
-        '.js': 'src_code','.h': 'src_code', '.c': 'src_code',
-        '.m': 'src_code', '.kt': 'src_code', '.py': 'src_code', '.sh': 'src_code',
-    }
-
+    cp_dirs_container = cp_dirs
     # mkdir src_code, exec, res, media, others directories in dest_dir
-    do_mkdir(cp_dirs=cp_dirs, dest_dir=dest_dir)
+    do_mkdir(cp_dirs=cp_dirs_container, dest_dir=dest_dir)
 
     # copy files to dest_dir
     do_copy(total_files=total_files, sorted_types=sorted_types,
-            source_dir=source_dir, dest_dir=dest_dir, cp_dirs=cp_dirs)
+            source_dir=source_dir, dest_dir=dest_dir, cp_dirs=cp_dirs_container)
 
 if __name__ == '__main__':
     classify()
