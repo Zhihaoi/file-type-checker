@@ -8,13 +8,14 @@ cp_dirs = {
         '.pl': 'src_code', '.rb': 'src_code', '.go': 'src_code', '.java': 'src_code',
         '.hpp': 'src_code', '.rst': 'src_code', '.ads': 'src_code', '.adb': 'src_code',
         '.rs': 'src_code', '.cpp': 'src_code', '.cc': 'src_code', '.cxx': 'src_code',
-        '.hxx': 'src_code', 
+        '.hxx': 'src_code', '.sql': 'src_code', '.asm': 'src_code', 
+        '.pyx': 'src_code', '.lua' : 'src_code', 
 
         '.dll': 'exec', '.so': 'exec', '.deb': 'exec', '.ko': 'exec',
         '.pyc': 'exec', '.pm': 'exec', '.opq': 'exec', '.beam': 'exec',
         '.0': 'exec', '.1': 'exec', '.3': 'exec', '.jar': 'exec',
         '.exe': 'exec', '.bin': 'exec', '.o': 'exec', '.a': 'exec',
-        '.cmd': 'exec', '.bat': 'exec', 
+        '.cmd': 'exec', '.bat': 'exec', '.pt': 'exec',
 
         '.pak': 'res', '.json': 'res', '.tid': 'res', '.map': 'res',
         '.md': 'res', '.flow': 'res', '.html': 'res', '.css': 'res',
@@ -25,10 +26,18 @@ cp_dirs = {
         '.ali': 'res', '.page': 'res', '.info': 'res', '.desktop': 'res',
         '.d': 'res', '.xpm': 'res', '.vf': 'res', '.htm': 'res',
         '.cfg': 'res', 'xhtml': 'res', '.tmpl': 'res', '.tmpl.in': 'res',
+        '.csv': 'res', '.pyi': 'res', '.in': 'res', '.jsonc': 'res',
+        '.yaml': 'res', '.eb': 'res', '.csl': 'res', '.scss': 'res',
+        '.pos': 'res', '.less': 'res', '.woff': 'res', '.ttf': 'res',
+        '.ini': 'res', '.zcml': 'res', '.typed': 'res', '.j2': 'res',
+        '.ipynb': 'res', '.pickle': 'res', '.woff2': 'res', '.cif': 'res',
+        '.npy': 'res', '.toml': 'res', '.eot': 'res', '.svg': 'res',
+        '.geojson': 'res', '.cu': 'res', '.h5': 'res', '.hdf5': 'res',
 
         '.svg': 'media', '.jpg': 'media', '.gif': 'media',
         '.ts': 'media', '.png': 'media', '.ico': 'media', '.bmp': 'media',
         '.ogg': 'media', '.mp3': 'media', '.wav': 'media', '.mp4': 'media',
+        '.webp': 'media', '.webm': 'media', '.mkv': 'media', '.avi': 'media',
     }
 
 def classify():
